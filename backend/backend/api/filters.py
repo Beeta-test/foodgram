@@ -7,7 +7,7 @@ from users.models import CustomUser
 class RecipeFilter(django_filters.FilterSet):
     tags = filters.ModelMultipleChoiceFilter(
         queryset=Tag.objects.all(),
-        field_name='tags',
+        field_name='tags__slug',
         to_field_name='slug',
         conjoined=False
     )
