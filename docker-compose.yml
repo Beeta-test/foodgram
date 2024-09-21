@@ -32,13 +32,12 @@ services:
   
   nginx:
     container_name: foodgram-proxy
-    build: ./infra/
+    build: ./nginx/
     ports:
       - 9000:80
     depends_on:
       - backend
     volumes:
-      - ./frontend/build:/usr/share/nginx/html/
       - ./docs/:/usr/share/nginx/html/api/docs/
       - ./static:/staticfiles/
       - ./media:/media/

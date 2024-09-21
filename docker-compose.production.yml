@@ -30,15 +30,14 @@ services:
     volumes:
       - static:/frontend_static
   
-  nginx:
+  gateway:
     container_name: foodgram-proxy
-    image: heiikousen/foodgram_infra
+    image: heiikousen/foodgram_gateway
     ports:
       - 9000:80
     depends_on:
       - backend
     volumes:
-      - ./frontend/build:/usr/share/nginx/html/
       - ./docs/:/usr/share/nginx/html/api/docs/
       - ./static:/staticfiles/
       - ./media:/media/
