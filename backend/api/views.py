@@ -3,14 +3,15 @@ import hashlib
 import io
 
 from core.consts import BASE_URl
+from django.db.models import Sum
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
 from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
                             ShoppingList, Tag)
-from rest_framework import (decorators, exceptions, permissions, response,
-                            status, viewsets)
+from rest_framework import (decorators, exceptions, filters, permissions,
+                            response, status, viewsets)
 from users.models import CustomUser, Subscribe
 
 from .filters import IngredientFilter, RecipeFilter
@@ -18,14 +19,15 @@ from .pagination import LimitPageNumberPagination
 from .serializers import (AuthorSerializer, CreateRecipeSerializer,
                           CustomUserSerializer, IngredientSerializer,
                           RecipeSerializer, ShortRecipeSerializer,
-                          SubscriptionRecipeSerializer, TagSerializer)
+                          TagSerializer)
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
-    filter_backends = [DjangoFilterBackend]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_class = RecipeFilter
     pagination_class = LimitPageNumberPagination
+    ordering = ['-pub_date']
 
     def get_queryset(self):
         queryset = Recipe.objects.all()
@@ -59,15 +61,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
         serializer.save()
 
     def destroy(self, request, *args, **kwargs):
-        try:
-            recipe = self.get_object()
-            if recipe.author != request.user:
-                raise exceptions.PermissionDenied(
-                    'У вас нет прав удалить этот рецепт.')
-            recipe.delete()
-            return response.Response(status=status.HTTP_204_NO_CONTENT)
-        except Recipe.DoesNotExist:
-            return response.Response(status=status.HTTP_404_NOT_FOUND)
+        recipe = self.get_object()
+        if recipe.author != request.user:
+            raise exceptions.PermissionDenied(
+                'У вас нет прав удалить этот рецепт.'
+            )
+        recipe.delete()
+        return response.Response(status=status.HTTP_204_NO_CONTENT)
 
     @decorators.action(detail=True, methods=['post', 'delete'])
     def favorite(self, request, pk=None):
@@ -90,8 +90,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         if created:
             return response.Response(
                 recipe_serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            return response.Response(status=status.HTTP_400_BAD_REQUEST)
+        return response.Response(status=status.HTTP_400_BAD_REQUEST)
 
     @decorators.action(detail=True, methods=['get'], url_path='get-link')
     def get_link(self, request, pk=None):
@@ -101,7 +100,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             {"short-link": short_link}, status=status.HTTP_200_OK)
 
     def generate_short_link(self, recipe_id):
-        hash_object = hashlib.md5(str(recipe_id).encode())
+        hash_object = hashlib.sha256(str(recipe_id).encode())
         short_hash = hash_object.hexdigest()[:6]
         base_url = BASE_URl
         return f"{base_url}{short_hash}"
@@ -137,21 +136,22 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @decorators.action(detail=False, methods=['get'])
     def download_shopping_cart(self, request):
         shopping_lists = ShoppingList.objects.filter(user=request.user)
+        recipes = shopping_lists.values_list('recipe', flat=True)
+
+        ingredients = RecipeIngredient.objects.filter(recipe__in=recipes) \
+            .values('ingredient__name', 'ingredient__measurement_unit') \
+            .annotate(total_amount=Sum('amount'))
+
         buffer = io.StringIO()
         writer = csv.writer(buffer)
         writer.writerow(['Ingredient', 'Amount', 'Unit'])
 
-        for shopping_list in shopping_lists:
-            recipe = shopping_list.recipe
-            recipe_ingredients = RecipeIngredient.objects.filter(recipe=recipe)
-
-            for recipe_ingredient in recipe_ingredients:
-                ingredient = recipe_ingredient.ingredient
-                writer.writerow([
-                    ingredient.name,
-                    recipe_ingredient.amount,
-                    ingredient.measurement_unit
-                ])
+        for ingredient in ingredients:
+            writer.writerow([
+                ingredient['ingredient__name'],
+                ingredient['total_amount'],
+                ingredient['ingredient__measurement_unit']
+            ])
 
         buffer.seek(0)
         response = io.BytesIO(buffer.getvalue().encode('utf-8'))
@@ -207,14 +207,12 @@ class CustomUserViewSet(UserViewSet):
     )
     def subscriptions(self, request):
         subscriptions = request.user.subscriptions.all()
-
         paginator = self.paginator
         paginated_subscriptions = paginator.paginate_queryset(
             subscriptions, request)
-
         recipes_limit = request.query_params.get('recipes_limit', None)
-
         serialized_data = []
+
         for subscription in paginated_subscriptions:
             author = subscription.author
 
@@ -231,9 +229,9 @@ class CustomUserViewSet(UserViewSet):
             user_serializer = CustomUserSerializer(author, context={
                 'request': request})
             user_data = user_serializer.data
-
-            recipe_serializer = SubscriptionRecipeSerializer(
+            recipe_serializer = ShortRecipeSerializer(
                 recipes, many=True, context={'request': request})
+
             user_data['recipes'] = recipe_serializer.data
             user_data['recipes_count'] = author.recipes.count()
 
@@ -280,7 +278,7 @@ class CustomUserViewSet(UserViewSet):
                 return response.Response(status=status.HTTP_400_BAD_REQUEST)
             recipes = recipes[:recipes_limit]
 
-        recipe_serializer = SubscriptionRecipeSerializer(
+        recipe_serializer = ShortRecipeSerializer(
             recipes, many=True, context={'request': request})
         user_serializer = CustomUserSerializer(
             author, context={'request': request})

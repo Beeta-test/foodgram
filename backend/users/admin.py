@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import CustomUser
+from .models import CustomUser, Subscribe
 
 
 class CustomUserAdmin(admin.ModelAdmin):
@@ -8,4 +8,10 @@ class CustomUserAdmin(admin.ModelAdmin):
     search_fields = ('email', 'username')
 
 
+class SubscribeAdmin(admin.ModelAdmin):
+    list_display = ('user', 'author')
+    search_fields = ('user', 'author')
+
+
 admin.site.register(CustomUser, CustomUserAdmin)
+admin.site.register(Subscribe, SubscribeAdmin)

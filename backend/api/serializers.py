@@ -7,7 +7,6 @@ from djoser.serializers import UserCreateSerializer
 from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
                             ShoppingList, Tag)
 from rest_framework import exceptions, serializers
-from rest_framework.validators import UniqueTogetherValidator
 from users.models import CustomUser, Subscribe
 
 
@@ -380,54 +379,4 @@ class CustomUserSerializer(serializers.ModelSerializer):
     def get_avatar_url(self, obj):
         if obj.avatar:
             return obj.avatar.url
-        return None
-
-
-class SubscriptionSerializer(serializers.ModelSerializer):
-    user = serializers.SlugRelatedField(
-        slug_field='username',
-        read_only=True,
-        default=serializers.CurrentUserDefault()
-    )
-    author = serializers.SlugRelatedField(
-        slug_field='username', queryset=CustomUser.objects.all()
-    )
-
-    class Meta:
-        model = Subscribe
-        fields = ('user', 'author')
-        validators = [
-            UniqueTogetherValidator(
-                queryset=Subscribe.objects.all(),
-                fields=['user', 'author'],
-                message='Вы уже подписаны на этого пользователя.'
-            )
-        ]
-
-    def validate_author(self, value):
-        if self.context['request'].user == value:
-            raise serializers.ValidationError(
-                'Нельзя подписаться на самого себя.'
-            )
-        return value
-
-
-class SubscriptionRecipeSerializer(serializers.ModelSerializer):
-    id = serializers.ReadOnlyField()
-    name = serializers.ReadOnlyField()
-    image = Base64ImageField()
-    cooking_time = serializers.ReadOnlyField()
-
-    class Meta:
-        model = Recipe
-        fields = [
-            'id',
-            'name',
-            'image',
-            'cooking_time'
-        ]
-
-    def get_image_url(self, obj):
-        if obj.image:
-            return obj.image.url
         return None
