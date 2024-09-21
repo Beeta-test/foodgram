@@ -26,9 +26,9 @@ services:
   frontend:
     env_file: .env
     image: heiikousen/foodgram_frontend
-    command: cp -r /app/build/. /frontend_static/
+    command: cp -r /app/build/. /static/
     volumes:
-      - static:/app/frontend_static
+      - static:/static
   
   gateway:
     container_name: foodgram-proxy
