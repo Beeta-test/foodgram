@@ -26,7 +26,7 @@ services:
   frontend:
     env_file: .env
     image: heiikousen/foodgram_frontend
-    command: cp -r /app/build/. /app/static/static
+    command: cp -r /app/build/. /app/frontend_static/
     volumes:
       - static:/frontend_static
   
