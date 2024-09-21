@@ -28,7 +28,7 @@ services:
     image: heiikousen/foodgram_frontend
     command: cp -r /app/build/. /static/
     volumes:
-      - static:/static
+      - static:/app/static
   
   gateway:
     container_name: foodgram-proxy
