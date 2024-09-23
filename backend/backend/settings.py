@@ -10,6 +10,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv('SECRET_KEY', get_random_secret_key())
 
+BASE_URL = os.getenv('BASE_URL', '')
+
 
 DEBUG = True
 
@@ -63,6 +65,13 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 
 DATABASES = {
     'default': {
+        'ENGINE': 'django.db.backends.sqlite3',  # Используем SQLite
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),  # Имя файла базы данных
+    }
+}
+
+""" DATABASES = {
+    'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.getenv('POSTGRES_DB', 'django'),
         'USER': os.getenv('POSTGRES_USER', 'django'),
@@ -70,7 +79,7 @@ DATABASES = {
         'HOST': os.getenv('DB_HOST', ''),
         'PORT': os.getenv('DB_PORT', 5432)
     }
-}
+} """
 
 AUTH_PASSWORD_VALIDATORS = [
     {

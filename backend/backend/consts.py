@@ -7,4 +7,5 @@ EMAIL_LENGTH = 254
 SHORT_NAME = 128
 PAGE_SIZE = 6
 SHORT_LINK = 6
-BASE_URl = 'https://foodandmemes.serveminecraft.net/s/'
+MIN_VALUE = 1
+MAX_VALUE = 32000

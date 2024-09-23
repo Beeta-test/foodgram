@@ -17,9 +17,9 @@ from .permissions import IsAuthorOrReadOnly
 from .serializers import (AuthorSerializer, CreateRecipeSerializer,
                           FavoriteSerializer, IngredientSerializer,
                           RecipeSerializer, ShoppingCartSerializer,
-                          ShortRecipeSerializer, SubscribeSerializer,
-                          TagSerializer, UserAvatarSerializer, UserSerializer)
-from backend.consts import BASE_URl
+                          SubscribeSerializer, TagSerializer,
+                          UserAvatarSerializer, UserSerializer)
+from backend.settings import BASE_URL
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -43,9 +43,25 @@ class RecipeViewSet(viewsets.ModelViewSet):
         delete_count, _ = model.objects.filter(
             user=user, recipe=recipe).delete()
 
-        if delete_count > 0:
-            return response.Response(status=status.HTTP_204_NO_CONTENT)
-        return response.Response(status=status.HTTP_400_BAD_REQUEST)
+        if not delete_count:
+            return response.Response(
+                'Рецепт не найден или к нему нет доступа.',
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        return response.Response(status=status.HTTP_204_NO_CONTENT)
+
+    def add_to_list(self, serializer_class, request, recipe):
+        user = request.user
+        serializer = serializer_class(
+            data={'user': user.id, 'recipe': recipe.id},
+            context={'request': request}
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return response.Response(
+            serializer.data, status=status.HTTP_201_CREATED
+        )
 
     @decorators.action(
         detail=True,
@@ -54,17 +70,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     )
     def favorite(self, request, pk=None):
         recipe = self.get_object()
-        user = request.user
-
-        serializer = FavoriteSerializer(
-            data={'user': user.id, 'recipe': recipe.id})
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-
-        response_serializer = ShortRecipeSerializer(
-            recipe, context={'request': request})
-        return response.Response(
-            response_serializer.data, status=status.HTTP_201_CREATED)
+        return self.add_to_list(FavoriteSerializer, request, recipe)
 
     @favorite.mapping.delete
     def remove_favorite(self, request, pk=None):
@@ -77,17 +83,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     )
     def shopping_cart(self, request, pk=None):
         recipe = self.get_object()
-        user = request.user
-
-        serializer = ShoppingCartSerializer(
-            data={'user': user.id, 'recipe': recipe.id})
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-
-        response_serializer = ShortRecipeSerializer(
-            recipe, context={'request': request})
-        return response.Response(
-            response_serializer.data, status=status.HTTP_201_CREATED)
+        return self.add_to_list(ShoppingCartSerializer, request, recipe)
 
     @shopping_cart.mapping.delete
     def remove_from_shopping_cart(self, request, pk=None):
@@ -131,7 +127,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def get_link(self, request, *args, **kwargs):
         recipe = self.get_object()
         short_link = recipe.short_link
-        return response.Response({'short-link': BASE_URl + short_link})
+        return response.Response({'short-link': BASE_URL + short_link})
 
     def redirect_recipe(request, link):
         id = Recipe.objects.get(short_link=link).id
@@ -201,32 +197,30 @@ class CustomUserViewSet(UserViewSet):
         data = {'user': request.user.id, 'author': author.id}
 
         serializer = SubscribeSerializer(
-            data=data, context={'request': request})
-        serializer.is_valid(raise_exception=True)
-        serializer.save(user=request.user)
-
-        user_serializer = UserSerializer(
-            author,
-            context={
+            data=data, context={
                 'request': request,
                 'recipes_limit': request.query_params.get('recipes_limit')
             }
         )
+        serializer.is_valid(raise_exception=True)
+        serializer.save(user=request.user)
 
         return response.Response(
-            user_serializer.data, status=status.HTTP_201_CREATED)
+            serializer.data, status=status.HTTP_201_CREATED)
 
     @subscribe.mapping.delete
     def unsubscribe(self, request, id):
         author = get_object_or_404(CustomUser, id=id)
 
-        subscription = Subscribe.objects.filter(
-            user=request.user, author=author)
-        if subscription.exists():
-            subscription.delete()
-            return response.Response(status=status.HTTP_204_NO_CONTENT)
+        delete_count, _ = Subscribe.objects.filter(
+            user=request.user, author=author).delete()
 
-        return response.Response(status=status.HTTP_400_BAD_REQUEST)
+        if not delete_count:
+            return response.Response(
+                'Вы не подписаны на этого пользователя.',
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        return response.Response(status=status.HTTP_204_NO_CONTENT)
 
     @decorators.action(
         detail=False,

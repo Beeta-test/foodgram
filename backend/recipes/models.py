@@ -6,7 +6,7 @@ from django.db import models
 from users.models import CustomUser
 
 from backend.consts import (BASE_NAME_LENGTH, BASE_SLUG_LEGHT, BASE_UTIL_LEGHT,
-                            SHORT_LINK, SHORT_NAME)
+                            SHORT_LINK, SHORT_NAME, MIN_VALUE, MAX_VALUE)
 
 
 class Ingredient(models.Model):
@@ -89,12 +89,14 @@ class Recipe(models.Model):
         'Время приготовления',
         validators=[
             validators.MinValueValidator(
-                1,
-                message='Время приготовления не может быть меньше 1 минуты.'
+                MIN_VALUE,
+                message=(f'Время приготовления не может'
+                         f'быть меньше {MIN_VALUE} минуты.')
             ),
             validators.MaxValueValidator(
-                32000,
-                message='Время приготовления не может превышать 32 000 минут.'
+                MAX_VALUE,
+                message=(f'Время приготовления не может'
+                         f'превышать {MAX_VALUE} минут.')
             )
         ]
     )
@@ -111,17 +113,18 @@ class Recipe(models.Model):
     def __str__(self) -> str:
         return self.name
 
-    def get_short_link(self):
-        letters = string.ascii_uppercase
-        rand_string = ''.join(
-            random.choice(letters) for i in range(
-                SHORT_LINK))
-        return rand_string
-
     def save(self, *args, **kwargs):
         if not self.short_link:
             self.short_link = self.get_short_link()
         return super().save(*args, **kwargs)
+
+    def get_short_link(self):
+        letters = string.ascii_uppercase
+        while True:
+            rand_string = ''.join(random.choice(letters)
+                                  for _ in range(SHORT_LINK))
+            if not Recipe.objects.filter(short_link=rand_string).exists():
+                return rand_string
 
 
 class RecipeIngredient(models.Model):
@@ -131,10 +134,11 @@ class RecipeIngredient(models.Model):
         'Количество',
         validators=(
             validators.MinValueValidator(
-                1, message='Минимальное количество ингредиентов 1'),
+                MIN_VALUE, message=(f'Минимальное количество'
+                                    f'ингредиентов {MIN_VALUE}')),
             validators.MaxValueValidator(
-                32000,
-                message='Максимальное количество ингредиентов 32 000.')
+                MAX_VALUE,
+                message=f'Максимальное количество ингредиентов {MAX_VALUE}.')
         )
     )
 
