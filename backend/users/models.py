@@ -1,12 +1,12 @@
-from core.consts import EMAIL_LENGTH, USER_LENGTH
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+
+from backend.consts import USER_LENGTH
 
 
 class CustomUser(AbstractUser):
 
     email = models.EmailField(
-        max_length=EMAIL_LENGTH,
         unique=True,
     )
     first_name = models.CharField(max_length=USER_LENGTH)
@@ -18,7 +18,7 @@ class CustomUser(AbstractUser):
         default=None
     )
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username']
+    REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
 
     class Meta:
         ordering = ('username',)

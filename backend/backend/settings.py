@@ -10,6 +10,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv('SECRET_KEY', get_random_secret_key())
 
+
 DEBUG = True
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '*').split(',')
@@ -26,7 +27,6 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'djoser',
     'api',
-    'core',
     'recipes',
     'users',
 ]
@@ -59,6 +59,14 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'backend.wsgi.application'
+
+
+#DATABASES = {
+#    'default': {
+#        'ENGINE': 'django.db.backends.sqlite3',
+#        'NAME': BASE_DIR / 'db.sqlite3',
+#    }
+#}
 
 DATABASES = {
     'default': {
@@ -113,7 +121,6 @@ ROOT_URLCONF = 'backend.urls'
 DJOSER = {
     'LOGIN_FIELD': 'email',
     'SERIALIZERS': {
-        'user_create': 'api.serializers.CustomUserCreateSerializer',
         'current_user': 'api.serializers.AuthorSerializer',
     },
     'PERMISSIONS': {

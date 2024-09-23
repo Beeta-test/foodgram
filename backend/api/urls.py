@@ -7,23 +7,23 @@ from .views import (CustomUserViewSet, IngredientViewSet, RecipeViewSet,
 router = DefaultRouter()
 
 router.register(
-    r'recipes',
+    'recipes',
     RecipeViewSet,
     basename='recipes'
 )
 router.register(
-    r'tags',
+    'tags',
     TagViewSet,
     basename='tags'
 )
 router.register(
-    r'ingredients',
+    'ingredients',
     IngredientViewSet,
     basename="ingredients"
 )
 
 router.register(
-    r'users',
+    'users',
     CustomUserViewSet,
     basename='users'
 )

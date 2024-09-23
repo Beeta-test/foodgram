@@ -8,11 +8,14 @@ colorama==0.4.6
 cryptography==43.0.1
 defusedxml==0.8.0rc2
 Django==3.2.16
+django-cors-headers==4.4.0
 django-filter==23.5
 django-templated-mail==1.1.1
 djangorestframework==3.12.4
-djangorestframework-simplejwt>=4.7.0,<6.0
+djangorestframework-simplejwt==5.3.1
 djoser==2.2.3
+drf-extra-fields==3.7.0
+filetype==1.2.0
 flake8==7.1.1
 flake8-isort==6.0.0
 idna==3.8
@@ -24,10 +27,12 @@ packaging==24.1
 pathspec==0.12.1
 pillow==10.4.0
 platformdirs==4.3.2
+psycopg2-binary==2.9.9
 pycodestyle==2.12.1
 pycparser==2.22
 pyflakes==3.2.0
 PyJWT==2.9.0
+python-dotenv==1.0.1
 python3-openid==3.2.0
 pytz==2024.1
 requests==2.32.3
@@ -38,8 +43,3 @@ sqlparse==0.5.1
 tomli==2.0.1
 typing_extensions==4.12.2
 urllib3==2.2.2
-python-dotenv==1.0.1
-django-cors-headers==3.13.0
-psycopg2-binary==2.9.3 
- drf-extra-fields
- filetype

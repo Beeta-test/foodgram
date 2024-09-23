@@ -1,11 +1,30 @@
 from django.contrib import admin
 
-from .models import Favorite, Ingredient, Recipe, ShoppingList, Tag
+from .models import (Favorite, Ingredient, Recipe, RecipeIngredient,
+                     ShoppingList, Tag)
+
+
+class RecipeIngredientInline(admin.TabularInline):
+    model = RecipeIngredient
+    extra = 1
+    min_num = 1
+    verbose_name = 'Ингредиент'
+    verbose_name_plural = 'Ингредиенты'
+
+
+class RecipeTagInline(admin.TabularInline):
+    model = Recipe.tags.through
+    extra = 1
+    min_num = 1
+    verbose_name = 'Тег'
+    verbose_name_plural = 'Теги'
 
 
 class RecipeAdmin(admin.ModelAdmin):
+
     list_display = ('name', 'author', 'get_favorited_count')
     list_filter = ('tags',)
+    inlines = [RecipeIngredientInline]
 
     @admin.display(description='Счетчик добавления в "Избранное" ')
     def get_favorited_count(self, obj):
