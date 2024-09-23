@@ -6,7 +6,7 @@ from django.db import models
 from users.models import CustomUser
 
 from backend.consts import (BASE_NAME_LENGTH, BASE_SLUG_LEGHT, BASE_UTIL_LEGHT,
-                            SHORT_LINK, SHORT_NAME, MIN_VALUE, MAX_VALUE)
+                            MAX_VALUE, MIN_VALUE, SHORT_LINK, SHORT_NAME)
 
 
 class Ingredient(models.Model):
