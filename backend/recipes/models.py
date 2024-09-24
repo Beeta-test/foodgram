@@ -106,6 +106,7 @@ class Recipe(models.Model):
         max_length=SHORT_NAME,)
 
     class Meta:
+        ordering = ('-pub_date',)
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
         default_related_name = 'recipes'
