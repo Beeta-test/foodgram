@@ -13,7 +13,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', get_random_secret_key())
 BASE_URL = os.getenv('BASE_URL', '')
 
 
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'False').lower == 'true'
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '*').split(',')
 

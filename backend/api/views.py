@@ -131,12 +131,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
         short_link = recipe.short_link
         return response.Response({'short-link': BASE_URL + short_link})
 
-    def redirect_recipe(request, link):
-        id = Recipe.objects.get(short_link=link).id
-        foodgram_link = str.replace(
-            request.build_absolute_uri(), 's/' + link + '/', '')
-        return HttpResponseRedirect(
-            foodgram_link + 'recipes/' + str(id) + '/')
+
+def redirect_recipe(request, link):
+    id = Recipe.objects.get(short_link=link).id
+    foodgram_link = str.replace(
+        request.build_absolute_uri(), 's/' + link + '/', '')
+    return HttpResponseRedirect(
+        foodgram_link + 'recipes/' + str(id) + '/')
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
