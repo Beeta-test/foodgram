@@ -129,7 +129,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def get_link(self, request, *args, **kwargs):
         recipe = self.get_object()
         short_link = recipe.short_link
-        return response.Response({'short-link': BASE_URL + short_link})
+        return response.Response({'short-link': BASE_URL + '/s/' + short_link})
 
 
 def redirect_recipe(request, link):
