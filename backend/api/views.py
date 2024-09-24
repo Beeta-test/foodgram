@@ -11,8 +11,6 @@ from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
 from rest_framework import decorators, permissions, response, status, viewsets
 from users.models import CustomUser, Subscribe
 
-from backend.settings import BASE_URL
-
 from .filters import IngredientFilter, RecipeFilter
 from .pagination import LimitPageNumberPagination
 from .permissions import IsAuthorOrReadOnly
