@@ -3,8 +3,8 @@ import string
 
 from django.core import validators
 from django.db import models
-from users.models import CustomUser
 
+from users.models import CustomUser
 from backend.consts import (BASE_NAME_LENGTH, BASE_SLUG_LEGHT, BASE_UTIL_LEGHT,
                             MAX_VALUE, MIN_VALUE, SHORT_LINK, SHORT_NAME)
 
