@@ -6,11 +6,11 @@ from django.http import FileResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
+from rest_framework import decorators, permissions, response, status, viewsets
+
 from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
                             ShoppingList, Tag)
-from rest_framework import decorators, permissions, response, status, viewsets
 from users.models import CustomUser, Subscribe
-
 from .filters import IngredientFilter, RecipeFilter
 from .pagination import LimitPageNumberPagination
 from .permissions import IsAuthorOrReadOnly
@@ -45,7 +45,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
         if not delete_count:
             return response.Response(
-                'Рецепт не найден или к нему нет доступа.',
+                (f'Запись с пользователем {user.id}'
+                 f'и рецептом {recipe.id} не найдена.'),
                 status=status.HTTP_400_BAD_REQUEST
             )
 
